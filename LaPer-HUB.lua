@@ -1,8 +1,5 @@
--- Obfuscated by LaperBot || https://laperstore.id
--- yok top ap di laperstore loh ya
 -- =============================================================================
--- PROJECT NAME: Laper Gank Admin TP - UI Interaction Fix
--- DESCRIPTION: Bypass CoreGui Input Blocking & Global Z-Index
+-- PROJECT NAME: Laper Gank Admin TP - List Edition & Sibling Layering
 -- =============================================================================
 
 local Players = game:GetService("Players")
@@ -27,7 +24,7 @@ if not AuraContainer then
 end
 
 -- -----------------------------------------------------------------------------
--- GLOBAL UTILITIES & CORE FUNCTIONS
+-- FUNGSI DRAGGABLE
 -- -----------------------------------------------------------------------------
 local function makeDraggable(gui, dragHandle)
     local dragging, dragInput, dragStart, startPos
@@ -54,72 +51,34 @@ local function makeDraggable(gui, dragHandle)
     end)
 end
 
-local function getPlayerStatus(player)
-    if not player.Character or not player.Character:FindFirstChild("Humanoid") then return "Dead" end
-    local char = player.Character
-    local hum = char.Humanoid
-    
-    if char:FindFirstChild("Hooked") or char:FindFirstChild("Sacrificed") or hum.PlatformStand then
-        return "Hooked"
-    end
-    if hum.Health <= 0 then
-        return "Dead"
-    elseif hum.Health < 30 or char:FindFirstChild("Bleeding") or hum.WalkSpeed < 8 then
-        return "Bleeding"
-    elseif hum.Health < 100 then
-        return "Injured"
-    end
-    return "Healthy"
-end
-
 -- -----------------------------------------------------------------------------
--- GRAPHICAL USER INTERFACE GENERATION (FIXED BYPASS)
+-- GUI SETUP (MENGGUNAKAN NATURAL HIERARCHY / TANPA ZINDEX)
 -- -----------------------------------------------------------------------------
-
--- Pembersihan GUI Lama yang Menumpuk
-for _, gui in ipairs(CoreGui:GetChildren()) do
-    if gui.Name == "LaperGankAdminTeleport" then gui:Destroy() end
-end
-for _, gui in ipairs(localPlayer:WaitForChild("PlayerGui"):GetChildren()) do
-    if gui.Name == "LaperGankAdminTeleport" then gui:Destroy() end
-end
+local targetParent = type(gethui) == "function" and gethui() or CoreGui
+local oldGui = targetParent:FindFirstChild("LaperGankAdminTeleport")
+if oldGui then oldGui:Destroy() end
 
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "LaperGankAdminTeleport"
 screenGui.ResetOnSpawn = false
 screenGui.DisplayOrder = 999
-screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global -- KUNCI FIX 1: Memaksa Layering Absolut
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling -- SOLUSI TERBAIK PENGGANTI ZINDEX MANUAL
+screenGui.Parent = targetParent
 
--- KUNCI FIX 2: Executor Parent Bypass
-local targetParent
-if type(gethui) == "function" then
-    targetParent = gethui() -- Standar perlindungan executor modern agar UI bisa diklik
-else
-    targetParent = CoreGui
-end
-
-local success, _ = pcall(function() screenGui.Parent = targetParent end)
-if not success then 
-    screenGui.Parent = localPlayer:WaitForChild("PlayerGui") 
-end
-
--- MAIN CONTAINER
+-- MAIN FRAME (Diperbesar untuk menampung List)
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 280, 0, 240)
-mainFrame.Position = UDim2.new(0.5, -140, 0.5, -120)
+mainFrame.Size = UDim2.new(0, 280, 0, 310) 
+mainFrame.Position = UDim2.new(0.5, -140, 0.5, -155)
 mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
 mainFrame.BorderSizePixel = 0
-mainFrame.Active = true 
-mainFrame.ZIndex = 1
 mainFrame.Parent = screenGui
 Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 10)
 
--- TOPBAR FRAME
+-- TOP BAR (Untuk Drag)
 local topBar = Instance.new("Frame")
 topBar.Size = UDim2.new(1, 0, 0, 35)
 topBar.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 topBar.BorderSizePixel = 0
-topBar.ZIndex = 2
 topBar.Parent = mainFrame
 Instance.new("UICorner", topBar).CornerRadius = UDim.new(0, 10)
 
@@ -128,12 +87,11 @@ topBarCover.Size = UDim2.new(1, 0, 0, 10)
 topBarCover.Position = UDim2.new(0, 0, 1, -10)
 topBarCover.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 topBarCover.BorderSizePixel = 0
-topBarCover.ZIndex = 2
 topBarCover.Parent = topBar
 
 makeDraggable(mainFrame, topBar)
 
--- MENU TITLES
+-- JUDUL
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(0.6, 0, 1, 0)
 title.Position = UDim2.new(0.05, 0, 0, 0)
@@ -143,10 +101,9 @@ title.TextColor3 = Color3.fromRGB(255, 60, 60)
 title.Font = Enum.Font.GothamBold
 title.TextSize = 13
 title.TextXAlignment = Enum.TextXAlignment.Left
-title.ZIndex = 3
 title.Parent = topBar
 
--- INTERACTION BUTTONS
+-- TOMBOL CLOSE & MINIMIZE
 local closeBtn = Instance.new("TextButton")
 closeBtn.Size = UDim2.new(0, 22, 0, 22)
 closeBtn.Position = UDim2.new(1, -27, 0.5, -11)
@@ -155,7 +112,6 @@ closeBtn.Text = "×"
 closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 closeBtn.Font = Enum.Font.GothamBold
 closeBtn.TextSize = 16
-closeBtn.ZIndex = 50 
 closeBtn.Parent = topBar
 Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(1, 0)
 
@@ -167,83 +123,16 @@ minBtn.Text = "-"
 minBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
 minBtn.Font = Enum.Font.GothamBold
 minBtn.TextSize = 16
-minBtn.ZIndex = 50
 minBtn.Parent = topBar
 Instance.new("UICorner", minBtn).CornerRadius = UDim.new(1, 0)
 
--- DROPDOWN TARGET SELECTION
-local dropdownBtn = Instance.new("TextButton")
-dropdownBtn.Size = UDim2.new(0.9, 0, 0, 35)
-dropdownBtn.Position = UDim2.new(0.05, 0, 0, 48)
-dropdownBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
-dropdownBtn.Text = "Pilih Target..."
-dropdownBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
-dropdownBtn.Font = Enum.Font.GothamMedium
-dropdownBtn.TextSize = 12
-dropdownBtn.ZIndex = 10
-dropdownBtn.Parent = mainFrame
-Instance.new("UICorner", dropdownBtn).CornerRadius = UDim.new(0, 6)
-
--- EXECUTE BUTTON
-local teleportBtn = Instance.new("TextButton")
-teleportBtn.Size = UDim2.new(0.9, 0, 0, 35)
-teleportBtn.Position = UDim2.new(0.05, 0, 0, 90)
-teleportBtn.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
-teleportBtn.Text = "EXECUTE TELEPORT"
-teleportBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-teleportBtn.Font = Enum.Font.GothamBold
-teleportBtn.TextSize = 12
-teleportBtn.ZIndex = 10
-teleportBtn.Parent = mainFrame
-Instance.new("UICorner", teleportBtn).CornerRadius = UDim.new(0, 6)
-
--- UTILITY PANEL BACKGROUND
-local utilityFrame = Instance.new("Frame")
-utilityFrame.Size = UDim2.new(0.9, 0, 0, 90)
-utilityFrame.Position = UDim2.new(0.05, 0, 0, 135)
-utilityFrame.BackgroundColor3 = Color3.fromRGB(22, 22, 25)
-utilityFrame.BorderSizePixel = 0
-utilityFrame.ZIndex = 5
-utilityFrame.Parent = mainFrame
-Instance.new("UICorner", utilityFrame).CornerRadius = UDim.new(0, 6)
-
--- TOGGLE OBJECTIVE AURA
-local toggleGenBtn = Instance.new("TextButton")
-toggleGenBtn.Size = UDim2.new(0.9, 0, 0, 32)
-toggleGenBtn.Position = UDim2.new(0.05, 0, 0, 10)
-toggleGenBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
-toggleGenBtn.Text = "OBJECTIVE AURA: OFF"
-toggleGenBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
-toggleGenBtn.Font = Enum.Font.GothamBold
-toggleGenBtn.TextSize = 11
-toggleGenBtn.ZIndex = 10
-toggleGenBtn.Parent = utilityFrame
-Instance.new("UICorner", toggleGenBtn).CornerRadius = UDim.new(0, 5)
-
--- TOGGLE STATUS OVERLAY
-local toggleStatusBtn = Instance.new("TextButton")
-toggleStatusBtn.Size = UDim2.new(0.9, 0, 0, 32)
-toggleStatusBtn.Position = UDim2.new(0.05, 0, 0, 48)
-toggleStatusBtn.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
-toggleStatusBtn.Text = "STATUS OVERLAY: ON"
-toggleStatusBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-toggleStatusBtn.Font = Enum.Font.GothamBold
-toggleStatusBtn.TextSize = 11
-toggleStatusBtn.ZIndex = 10
-toggleStatusBtn.Parent = utilityFrame
-Instance.new("UICorner", toggleStatusBtn).CornerRadius = UDim.new(0, 5)
-
--- SCROLLING PLAYER SELECTION FRAME
+-- PERMANENT PLAYER LIST (Menggantikan Dropdown)
 local scrollFrame = Instance.new("ScrollingFrame")
-scrollFrame.Size = UDim2.new(0.9, 0, 0, 130)
-scrollFrame.Position = UDim2.new(0.05, 0, 0, 85)
-scrollFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+scrollFrame.Size = UDim2.new(0.9, 0, 0, 120)
+scrollFrame.Position = UDim2.new(0.05, 0, 0, 45)
+scrollFrame.BackgroundColor3 = Color3.fromRGB(22, 22, 25)
 scrollFrame.BorderSizePixel = 0
 scrollFrame.ScrollBarThickness = 4
-scrollFrame.Visible = false
-scrollFrame.Active = true
-scrollFrame.ZIndex = 100 
-scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 scrollFrame.AutomaticCanvasSize = Enum.AutomaticCanvasSize.Y
 scrollFrame.Parent = mainFrame
 Instance.new("UICorner", scrollFrame).CornerRadius = UDim.new(0, 6)
@@ -253,24 +142,74 @@ uiListLayout.SortOrder = Enum.SortOrder.Name
 uiListLayout.Padding = UDim.new(0, 4)
 uiListLayout.Parent = scrollFrame
 
--- COMPACT DRAGGABLE MINIMIZE ICON
+-- EXECUTE TELEPORT BUTTON
+local teleportBtn = Instance.new("TextButton")
+teleportBtn.Size = UDim2.new(0.9, 0, 0, 35)
+teleportBtn.Position = UDim2.new(0.05, 0, 0, 175)
+teleportBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 50) -- Default Redup
+teleportBtn.Text = "PILIH PEMAIN DI LIST"
+teleportBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+teleportBtn.Font = Enum.Font.GothamBold
+teleportBtn.TextSize = 12
+teleportBtn.Parent = mainFrame
+Instance.new("UICorner", teleportBtn).CornerRadius = UDim.new(0, 6)
+
+-- UTILITY FRAME (Aura & Status)
+local utilityFrame = Instance.new("Frame")
+utilityFrame.Size = UDim2.new(0.9, 0, 0, 80)
+utilityFrame.Position = UDim2.new(0.05, 0, 0, 220)
+utilityFrame.BackgroundColor3 = Color3.fromRGB(22, 22, 25)
+utilityFrame.BorderSizePixel = 0
+utilityFrame.Parent = mainFrame
+Instance.new("UICorner", utilityFrame).CornerRadius = UDim.new(0, 6)
+
+local toggleGenBtn = Instance.new("TextButton")
+toggleGenBtn.Size = UDim2.new(0.9, 0, 0, 30)
+toggleGenBtn.Position = UDim2.new(0.05, 0, 0, 8)
+toggleGenBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
+toggleGenBtn.Text = "OBJECTIVE AURA: OFF"
+toggleGenBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+toggleGenBtn.Font = Enum.Font.GothamBold
+toggleGenBtn.TextSize = 11
+toggleGenBtn.Parent = utilityFrame
+Instance.new("UICorner", toggleGenBtn).CornerRadius = UDim.new(0, 5)
+
+local toggleStatusBtn = Instance.new("TextButton")
+toggleStatusBtn.Size = UDim2.new(0.9, 0, 0, 30)
+toggleStatusBtn.Position = UDim2.new(0.05, 0, 0, 42)
+toggleStatusBtn.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
+toggleStatusBtn.Text = "STATUS OVERLAY: ON"
+toggleStatusBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleStatusBtn.Font = Enum.Font.GothamBold
+toggleStatusBtn.TextSize = 11
+toggleStatusBtn.Parent = utilityFrame
+Instance.new("UICorner", toggleStatusBtn).CornerRadius = UDim.new(0, 5)
+
+-- MINIMIZE ICON DENGAN LOGO YANG DIMINTA
 local minIcon = Instance.new("ImageButton")
 minIcon.Size = UDim2.new(0, 50, 0, 50)
 minIcon.Position = UDim2.new(0.5, -25, 0.8, -25)
 minIcon.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-minIcon.Image = "rbxassetid://128042443413755"
+minIcon.Image = "rbxassetid://128042443413755" -- << ASSET ID SUDAH TERPASANG
 minIcon.ScaleType = Enum.ScaleType.Fit
 minIcon.Visible = false
-minIcon.Active = true
-minIcon.ZIndex = 200
 minIcon.Parent = screenGui
 Instance.new("UICorner", minIcon).CornerRadius = UDim.new(1, 0)
 
 makeDraggable(minIcon, minIcon)
 
 -- -----------------------------------------------------------------------------
--- CORE MECHANICS & LOGIC INTEGRATION
+-- SISTEM LOGIKA & UPDATE LIST OTOMATIS
 -- -----------------------------------------------------------------------------
+local function getPlayerStatus(player)
+    if not player.Character or not player.Character:FindFirstChild("Humanoid") then return "Dead" end
+    local hum = player.Character.Humanoid
+    if player.Character:FindFirstChild("Hooked") or hum.PlatformStand then return "Hooked" end
+    if hum.Health <= 0 then return "Dead" end
+    if hum.Health < 30 or hum.WalkSpeed < 8 then return "Bleeding" end
+    if hum.Health < 100 then return "Injured" end
+    return "Healthy"
+end
 
 local function updatePlayerList()
     for _, child in ipairs(scrollFrame:GetChildren()) do
@@ -279,117 +218,77 @@ local function updatePlayerList()
     
     for _, player in ipairs(Players:GetPlayers()) do
         if player ~= localPlayer then
-            local pStatus = getPlayerStatus(player)
             local statusColor = Color3.fromRGB(255, 255, 255)
             local textSuffix = ""
             
             if EspSettings.StatusOverlay then
-                if pStatus == "Hooked" then
-                    statusColor = Color3.fromRGB(255, 0, 0)
-                    textSuffix = " [HOOKED]"
-                elseif pStatus == "Bleeding" then
-                    statusColor = Color3.fromRGB(255, 140, 0)
-                    textSuffix = " [DOWNED]"
-                elseif pStatus == "Injured" then
-                    statusColor = Color3.fromRGB(255, 255, 100)
-                    textSuffix = " [INJURED]"
-                end
+                local pStatus = getPlayerStatus(player)
+                if pStatus == "Hooked" then statusColor = Color3.fromRGB(255, 0, 0) textSuffix = " [HOOKED]"
+                elseif pStatus == "Bleeding" then statusColor = Color3.fromRGB(255, 140, 0) textSuffix = " [DOWNED]"
+                elseif pStatus == "Injured" then statusColor = Color3.fromRGB(255, 255, 100) textSuffix = " [INJURED]" end
             end
             
             local btn = Instance.new("TextButton")
             btn.Size = UDim2.new(1, -6, 0, 30)
-            btn.BackgroundColor3 = Color3.fromRGB(55, 55, 60)
+            btn.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
             btn.Text = "  " .. player.Name .. textSuffix
             btn.TextColor3 = statusColor
             btn.Font = Enum.Font.GothamMedium
             btn.TextSize = 12
             btn.TextXAlignment = Enum.TextXAlignment.Left
-            btn.ZIndex = 110 
             btn.Parent = scrollFrame
             Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
             
-            -- KUNCI FIX 3: Menggunakan .Activated
-            btn.Activated:Connect(function()
+            -- Ketika nama di list diklik
+            btn.MouseButton1Click:Connect(function()
                 selectedPlayer = player
-                dropdownBtn.Text = player.Name .. textSuffix
-                dropdownBtn.TextColor3 = statusColor
-                scrollFrame.Visible = false
+                
+                -- Highlight list yang dipilih
+                for _, b in ipairs(scrollFrame:GetChildren()) do
+                    if b:IsA("TextButton") then b.BackgroundColor3 = Color3.fromRGB(45, 45, 50) end
+                end
+                btn.BackgroundColor3 = Color3.fromRGB(80, 80, 90)
+                
+                -- Aktifkan Tombol Teleport
+                teleportBtn.Text = "TELEPORT KE: " .. player.Name
+                teleportBtn.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
+                teleportBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
             end)
         end
     end
 end
 
-local function applyObjectiveAuras()
-    AuraContainer:ClearAllChildren()
-    if not EspSettings.GeneratorAura then return end
-    
-    for _, obj in ipairs(workspace:GetDescendants()) do
-        if obj:IsA("Model") and (string.find(string.lower(obj.Name), "generator") or string.find(string.lower(obj.Name), "gate")) then
-            local highlight = Instance.new("Highlight")
-            highlight.Name = "GeneratorAura"
-            highlight.Adornee = obj
-            
-            local isWorking = obj:FindFirstChild("Progress") or obj:FindFirstChild("Active")
-            if isWorking then
-                highlight.FillColor = Color3.fromRGB(0, 255, 100)
-            else
-                highlight.FillColor = Color3.fromRGB(0, 180, 255)
-            end
-            
-            highlight.FillTransparency = 0.4
-            highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-            highlight.OutlineTransparency = 0.1
-            highlight.Parent = AuraContainer
-        end
-    end
-end
-
-RunService.Heartbeat:Connect(function()
-    if EspSettings.GeneratorAura then
-        for _, highlight in ipairs(AuraContainer:GetChildren()) do
-            if highlight:IsA("Highlight") and highlight.Adornee then
-                local obj = highlight.Adornee
-                if obj:FindFirstChild("Working") or (obj:FindFirstChild("Progress") and obj.Progress.Value > 0) then
-                    highlight.FillColor = Color3.fromRGB(0, 255, 100)
-                end
-            end
-        end
-    end
-end)
+-- Refresh List saat ada yang masuk/keluar
+Players.PlayerAdded:Connect(updatePlayerList)
+Players.PlayerRemoving:Connect(updatePlayerList)
+updatePlayerList() -- Panggil pertama kali
 
 -- -----------------------------------------------------------------------------
--- BINDING INTERAKSI TOMBOL MENGGUNAKAN .Activated (ANTI GHOST-CLICKS)
+-- BINDING TOMBOL
 -- -----------------------------------------------------------------------------
-closeBtn.Activated:Connect(function() 
+closeBtn.MouseButton1Click:Connect(function() 
     AuraContainer:Destroy()
     screenGui:Destroy() 
 end)
 
-minBtn.Activated:Connect(function()
+minBtn.MouseButton1Click:Connect(function()
     mainFrame.Visible = false
     minIcon.Visible = true
     minIcon.Position = mainFrame.Position
 end)
 
-minIcon.Activated:Connect(function()
+minIcon.MouseButton1Click:Connect(function()
     minIcon.Visible = false
     mainFrame.Visible = true
     mainFrame.Position = minIcon.Position
 end)
 
-dropdownBtn.Activated:Connect(function()
-    if isTeleporting then return end
-    scrollFrame.Visible = not scrollFrame.Visible
-    if scrollFrame.Visible then updatePlayerList() end
-end)
-
-toggleGenBtn.Activated:Connect(function()
+toggleGenBtn.MouseButton1Click:Connect(function()
     EspSettings.GeneratorAura = not EspSettings.GeneratorAura
     if EspSettings.GeneratorAura then
         toggleGenBtn.Text = "OBJECTIVE AURA: ON"
         toggleGenBtn.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
         toggleGenBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        applyObjectiveAuras()
     else
         toggleGenBtn.Text = "OBJECTIVE AURA: OFF"
         toggleGenBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
@@ -398,7 +297,7 @@ toggleGenBtn.Activated:Connect(function()
     end
 end)
 
-toggleStatusBtn.Activated:Connect(function()
+toggleStatusBtn.MouseButton1Click:Connect(function()
     EspSettings.StatusOverlay = not EspSettings.StatusOverlay
     if EspSettings.StatusOverlay then
         toggleStatusBtn.Text = "STATUS OVERLAY: ON"
@@ -409,18 +308,20 @@ toggleStatusBtn.Activated:Connect(function()
         toggleStatusBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
         toggleStatusBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
     end
-    if scrollFrame.Visible then updatePlayerList() end
+    updatePlayerList()
 end)
 
-teleportBtn.Activated:Connect(function()
-    if isTeleporting then return end
+teleportBtn.MouseButton1Click:Connect(function()
+    if isTeleporting or not selectedPlayer then return end
     
-    if not selectedPlayer or not selectedPlayer.Character or not selectedPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        dropdownBtn.Text = "Target Tidak Ditemukan!"
-        dropdownBtn.TextColor3 = Color3.fromRGB(255, 60, 60)
+    local targetChar = selectedPlayer.Character
+    if not targetChar or not targetChar:FindFirstChild("HumanoidRootPart") then
+        teleportBtn.Text = "TARGET HILANG!"
+        teleportBtn.BackgroundColor3 = Color3.fromRGB(150, 40, 40)
         task.wait(1.5)
-        dropdownBtn.Text = "Pilih Target..."
-        dropdownBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+        teleportBtn.Text = "PILIH PEMAIN DI LIST"
+        teleportBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
+        selectedPlayer = nil
         return
     end
     
@@ -428,31 +329,18 @@ teleportBtn.Activated:Connect(function()
     if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then return end
     
     isTeleporting = true
-    scrollFrame.Visible = false
     teleportBtn.BackgroundColor3 = Color3.fromRGB(100, 40, 40)
     
     for i = 3, 1, -1 do
-        teleportBtn.Text = "TELEPORTING IN " .. i .. "s..."
+        teleportBtn.Text = "MENYIAPKAN TP " .. i .. "..."
         task.wait(1)
     end
     
-    if selectedPlayer and selectedPlayer.Character and selectedPlayer.Character:FindFirstChild("HumanoidRootPart") and myChar:FindFirstChild("HumanoidRootPart") then
-        local targetCFrame = selectedPlayer.Character.HumanoidRootPart.CFrame
-        myChar.HumanoidRootPart.CFrame = targetCFrame * CFrame.new(0, 0, 3)
-    else
-        pcall(function()
-            game:GetService("StarterGui"):SetCore("SendNotification", {
-                Title = "Teleport Failed",
-                Text = "Target keluar atau koordinat hilang!",
-                Duration = 3
-            })
-        end)
+    if selectedPlayer and targetChar:FindFirstChild("HumanoidRootPart") then
+        myChar.HumanoidRootPart.CFrame = targetChar.HumanoidRootPart.CFrame * CFrame.new(0, 0, 3)
     end
     
     teleportBtn.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
-    teleportBtn.Text = "EXECUTE TELEPORT"
-    dropdownBtn.Text = "Pilih Target..."
-    dropdownBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
-    selectedPlayer = nil
+    teleportBtn.Text = "TELEPORT KE: " .. selectedPlayer.Name
     isTeleporting = false
 end)
