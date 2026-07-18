@@ -1,23 +1,15 @@
 -- =============================================================================
--- VIOLENCE DISTRICT — ADMIN GUI (Client)
+-- VIOLENCE DISTRICT — ADMIN GUI (Full Local Client)
 -- Taruh di: StarterPlayerScripts (sebagai LocalScript)
--- GUI ini TIDAK punya hak eksekusi apa pun — semua aksi lewat Remote ke server.
+-- Semua aksi berjalan murni di client (tanpa RemoteEvent/Server Script).
 -- =============================================================================
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local localPlayer = Players.LocalPlayer
 local playerGui = localPlayer:WaitForChild("PlayerGui")
-
-local remoteFolder = ReplicatedStorage:WaitForChild("AdminRemotes")
-local CheckAdminRemote = remoteFolder:WaitForChild("CheckAdminStatus")
-local TeleportRemote = remoteFolder:WaitForChild("TeleportToPlayer")
-local ESPRemote = remoteFolder:WaitForChild("ToggleESP")
-local GetPlayerListRemote = remoteFolder:WaitForChild("GetPlayerList")
-local ESPStateEvent = remoteFolder:WaitForChild("ESPStateChanged")
 
 -- -----------------------------------------------------------------------------
 -- PALET WARNA
@@ -35,11 +27,16 @@ local COLOR_DANGER    = Color3.fromRGB(239, 68, 68)
 -- ROOT GUI
 -- -----------------------------------------------------------------------------
 local gui = Instance.new("ScreenGui")
-gui.Name = "VD_AdminGUI"
+gui.Name = "VD_AdminGUI_Local"
 gui.ResetOnSpawn = false
 gui.IgnoreGuiInset = true
 gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 gui.Parent = playerGui
+
+-- Folder lokal untuk menampung ESP agar rapi
+local espFolder = Instance.new("Folder")
+espFolder.Name = "VD_ESP_Folder"
+espFolder.Parent = gui
 
 -- -----------------------------------------------------------------------------
 -- HELPER: rounded corner + drag
@@ -64,8 +61,7 @@ local function enableDrag(dragHandle, moveFrame)
     end
 
     dragHandle.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1
-            or input.UserInputType == Enum.UserInputType.Touch then
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
             dragStart = input.Position
             startPos = moveFrame.Position
@@ -81,22 +77,20 @@ local function enableDrag(dragHandle, moveFrame)
     end)
 
     dragHandle.InputChanged:Connect(function(input)
-        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement
-            or input.UserInputType == Enum.UserInputType.Touch) then
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
             updateInput(input)
         end
     end)
 
     UserInputService.InputChanged:Connect(function(input)
-        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement
-            or input.UserInputType == Enum.UserInputType.Touch) then
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
             updateInput(input)
         end
     end)
 end
 
 -- =============================================================================
--- 1. ADMIN PANEL 
+-- ADMIN PANEL 
 -- =============================================================================
 local panel = Instance.new("Frame")
 panel.Name = "AdminPanel"
@@ -105,7 +99,7 @@ panel.Position = UDim2.new(0.5, -130, 0.5, -190)
 panel.BackgroundColor3 = COLOR_BG
 panel.BorderSizePixel = 0
 panel.Active = true
-panel.Visible = false -- Tersembunyi sampai diverifikasi oleh server
+panel.Visible = true -- Langsung terbuka
 panel.Parent = gui
 corner(panel, 16)
 
@@ -139,7 +133,7 @@ local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -76, 1, 0)
 title.Position = UDim2.new(0, 14, 0, 0)
 title.BackgroundTransparency = 1
-title.Text = "VD ADMIN PANEL"
+title.Text = "VD ADMIN (LOCAL)"
 title.Font = Enum.Font.GothamBold
 title.TextSize = 13
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -269,14 +263,15 @@ minIconLabel.Parent = minIcon
 enableDrag(minIcon, minIcon)
 
 -- -----------------------------------------------------------------------------
--- STATE
+-- STATE & LOCAL FUNCTIONS
 -- -----------------------------------------------------------------------------
 local selectedPlayer = nil
 local espBoxOn, espNameOn = false, false
 local playerCards = {}
+local activeESPs = {}
 
 -- -----------------------------------------------------------------------------
--- REFRESH PLAYER LIST
+-- LOKAL: REFRESH PLAYER LIST
 -- -----------------------------------------------------------------------------
 local function refreshPlayerList()
     for _, card in pairs(playerCards) do
@@ -284,16 +279,13 @@ local function refreshPlayerList()
     end
     playerCards = {}
 
-    local ok, list = pcall(function()
-        return GetPlayerListRemote:InvokeServer()
-    end)
-    if not ok or type(list) ~= "table" then return end
-
-    for _, entry in ipairs(list) do
+    local list = Players:GetPlayers() -- Ambil langsung dari client
+    
+    for _, ply in ipairs(list) do
         local card = Instance.new("TextButton")
         card.Size = UDim2.new(1, 0, 0, 32)
         card.BackgroundColor3 = COLOR_CARD_HOVER
-        card.Text = "  " .. entry.Name
+        card.Text = "  " .. ply.Name
         card.TextColor3 = COLOR_TEXT
         card.Font = Enum.Font.GothamMedium
         card.TextSize = 12
@@ -303,12 +295,12 @@ local function refreshPlayerList()
         corner(card, 8)
 
         card.Activated:Connect(function()
-            selectedPlayer = entry.Name
+            selectedPlayer = ply.Name
             for _, c in pairs(playerCards) do
                 c.BackgroundColor3 = COLOR_CARD_HOVER
             end
             card.BackgroundColor3 = COLOR_PURPLE
-            teleportBtn.Text = "TELEPORT TO " .. entry.Name
+            teleportBtn.Text = "TELEPORT TO " .. ply.Name
             teleportBtn.BackgroundColor3 = COLOR_PURPLE
             teleportBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
         end)
@@ -317,36 +309,105 @@ local function refreshPlayerList()
     end
 end
 
-Players.PlayerAdded:Connect(function()
+-- -----------------------------------------------------------------------------
+-- LOKAL: ESP SYSTEM
+-- -----------------------------------------------------------------------------
+local function clearESP(player)
+    if activeESPs[player.Name] then
+        for _, obj in pairs(activeESPs[player.Name]) do
+            if obj then obj:Destroy() end
+        end
+        activeESPs[player.Name] = nil
+    end
+end
+
+local function applyESP(player)
+    if player == localPlayer then return end
+    clearESP(player)
+
+    local char = player.Character
+    if not char then return end
+
+    activeESPs[player.Name] = {}
+
+    -- ESP BOX (menggunakan bawaan Roblox Highlight)
+    if espBoxOn then
+        local hl = Instance.new("Highlight")
+        hl.FillColor = COLOR_PURPLE
+        hl.OutlineColor = COLOR_BLUE
+        hl.FillTransparency = 0.6
+        hl.OutlineTransparency = 0
+        hl.Adornee = char
+        hl.Parent = espFolder
+        table.insert(activeESPs[player.Name], hl)
+    end
+
+    -- ESP NAME (menggunakan BillboardGui)
+    if espNameOn then
+        local head = char:FindFirstChild("Head")
+        if head then
+            local bgui = Instance.new("BillboardGui")
+            bgui.Name = "ESPName"
+            bgui.Adornee = head
+            bgui.Size = UDim2.new(0, 100, 0, 30)
+            bgui.StudsOffset = Vector3.new(0, 2, 0)
+            bgui.AlwaysOnTop = true
+            bgui.Parent = espFolder
+
+            local txt = Instance.new("TextLabel")
+            txt.Size = UDim2.new(1, 0, 1, 0)
+            txt.BackgroundTransparency = 1
+            txt.Text = player.Name
+            txt.TextColor3 = COLOR_TEXT
+            txt.TextStrokeTransparency = 0
+            txt.TextStrokeColor3 = Color3.new(0,0,0)
+            txt.Font = Enum.Font.GothamBold
+            txt.TextSize = 12
+            txt.Parent = bgui
+            
+            table.insert(activeESPs[player.Name], bgui)
+        end
+    end
+end
+
+local function updateAllESP()
+    for _, p in ipairs(Players:GetPlayers()) do
+        applyESP(p)
+    end
+end
+
+Players.PlayerAdded:Connect(function(player)
     if panel.Visible then refreshPlayerList() end
-end)
-Players.PlayerRemoving:Connect(function()
-    if panel.Visible then refreshPlayerList() end
+    player.CharacterAdded:Connect(function()
+        task.wait(1) -- tunggu character render utuh
+        applyESP(player)
+    end)
 end)
 
--- -----------------------------------------------------------------------------
--- STARTUP CHECK (VERIFIKASI ADMIN)
--- -----------------------------------------------------------------------------
-task.spawn(function()
-    local ok, isAuthorizedAdmin = pcall(function()
-        return CheckAdminRemote:InvokeServer()
-    end)
-    
-    if ok and isAuthorizedAdmin then
-        panel.Visible = true
-        refreshPlayerList()
-    else
-        -- Hapus GUI jika bukan admin agar tidak memenuhi memori client biasa
-        gui:Destroy()
-    end
+Players.PlayerRemoving:Connect(function(player)
+    if panel.Visible then refreshPlayerList() end
+    clearESP(player)
 end)
+
+-- Hubungkan ESP ke pemain yang sudah ada di dalam game
+for _, p in ipairs(Players:GetPlayers()) do
+    p.CharacterAdded:Connect(function()
+        task.wait(1)
+        applyESP(p)
+    end)
+end
+
+-- Refresh awal
+refreshPlayerList()
 
 -- -----------------------------------------------------------------------------
 -- CLOSE / MINIMIZE
 -- -----------------------------------------------------------------------------
 closeBtn.Activated:Connect(function()
-    if espBoxOn then ESPRemote:FireServer("Box", false) end
-    if espNameOn then ESPRemote:FireServer("Name", false) end
+    espBoxOn = false
+    espNameOn = false
+    updateAllESP()
+    
     panel.Visible = false
     minIcon.Visible = false
 end)
@@ -366,7 +427,8 @@ end)
 -- -----------------------------------------------------------------------------
 espBoxBtn.Activated:Connect(function()
     espBoxOn = not espBoxOn
-    ESPRemote:FireServer("Box", espBoxOn)
+    updateAllESP()
+    
     if espBoxOn then
         espBoxBtn.Text = "ESP BOX: ON"
         espBoxBtn.BackgroundColor3 = COLOR_BLUE
@@ -380,7 +442,8 @@ end)
 
 espNameBtn.Activated:Connect(function()
     espNameOn = not espNameOn
-    ESPRemote:FireServer("Name", espNameOn)
+    updateAllESP()
+    
     if espNameOn then
         espNameBtn.Text = "ESP NAME: ON"
         espNameBtn.BackgroundColor3 = COLOR_BLUE
@@ -393,10 +456,11 @@ espNameBtn.Activated:Connect(function()
 end)
 
 -- -----------------------------------------------------------------------------
--- TELEPORT
+-- LOKAL: TELEPORT (Memindahkan HumanoidRootPart Client Secara Langsung)
 -- -----------------------------------------------------------------------------
 teleportBtn.Activated:Connect(function()
     if not selectedPlayer then return end
+    
     local targetPlayer = Players:FindFirstChild(selectedPlayer)
     if not targetPlayer then
         teleportBtn.Text = "PLAYER LEFT"
@@ -408,5 +472,17 @@ teleportBtn.Activated:Connect(function()
         selectedPlayer = nil
         return
     end
-    TeleportRemote:FireServer(targetPlayer)
+    
+    local myChar = localPlayer.Character
+    local targetChar = targetPlayer.Character
+    
+    if myChar and targetChar then
+        local myRoot = myChar:FindFirstChild("HumanoidRootPart")
+        local targetRoot = targetChar:FindFirstChild("HumanoidRootPart")
+        
+        if myRoot and targetRoot then
+            -- Pindahkan karakter lokal langsung ke target offset sedikit agar tidak stuck
+            myRoot.CFrame = targetRoot.CFrame * CFrame.new(0, 0, -4)
+        end
+    end
 end)
