@@ -1,7 +1,7 @@
 -- =============================================================================
--- PROJECT: LAPER GANK ADMIN - PREMIUM ANDROID HUD DASBOR
--- AESTHETIC: Dark Cyberpunk, Floating Cards, Neon Purple & Blue Strokes
--- SPECIAL TECH: Absolute Dynamic Coordinate Sync & Anti-Reset Speed Bypass
+-- PROJECT: LAPER GANK ADMIN - PREMIUM ANDROID HUD DASBOR (BYPASS SPEED EDITION)
+-- TEMA: Android Mobile App (Abu-abu Gelap, Ungu & Biru Neon)
+-- OPTIMASI: 100% Delta Executor Mobile Safe & Anti-Cheat Speed Bypass
 -- =============================================================================
 
 local Players = game:GetService("Players")
@@ -46,7 +46,7 @@ local selectedPlayer = nil
 local isTeleporting = false
 local speedSettings = {
 	Enabled = false,
-	Value = 16
+	Multiplier = 1 -- Nilai tambahan kecepatan fisik
 }
 
 -- -----------------------------------------------------------------------------
@@ -81,7 +81,6 @@ end
 -- VISUAL RENDER ENGINE: LUXURY FLOATING DASHBOARD
 -- -----------------------------------------------------------------------------
 
--- Main Frame (Diperbesar & Melayang Lebih Nyata)
 local mainFrame = Instance.new("Frame")
 mainFrame.Size = UDim2.new(0, 290, 0, 280)
 mainFrame.Position = UDim2.new(0.5, -145, 0.4, -140)
@@ -96,7 +95,6 @@ mainStroke.Color = Color3.fromRGB(138, 43, 226) -- Aksen Ungu Neon Utama
 mainStroke.Thickness = 2.5
 mainStroke.Parent = mainFrame
 
--- Glowing Accent Header Line (Gradasi Garis Pemisah Biru)
 local lineGlow = Instance.new("Frame")
 lineGlow.Size = UDim2.new(1, 0, 0, 2)
 lineGlow.Position = UDim2.new(0, 0, 0, 42)
@@ -104,7 +102,6 @@ lineGlow.BackgroundColor3 = Color3.fromRGB(0, 191, 255)
 lineGlow.BorderSizePixel = 0
 lineGlow.Parent = mainFrame
 
--- Top Bar Header Area
 local topBar = Instance.new("Frame")
 topBar.Size = UDim2.new(1, 0, 0, 42)
 topBar.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
@@ -152,9 +149,6 @@ minBtn.Font = Enum.Font.GothamBold
 minBtn.TextSize = 14
 minBtn.Parent = topBar
 
--- -----------------------------------------------------------------------------
--- MENU TAB CONTAINER (Sistem Kartu Grid Kisi Kontrol)
--- -----------------------------------------------------------------------------
 local contentGrid = Instance.new("Frame")
 contentGrid.Size = UDim2.new(0.92, 0, 0, 215)
 contentGrid.Position = UDim2.new(0.04, 0, 0, 52)
@@ -226,9 +220,9 @@ local inputSpeed = Instance.new("TextBox")
 inputSpeed.Size = UDim2.new(0.55, 0, 0, 34)
 inputSpeed.Position = UDim2.new(0.05, 0, 0.5, -17)
 inputSpeed.BackgroundColor3 = Color3.fromRGB(16, 16, 20)
-inputSpeed.Text = "50"
+inputSpeed.Text = "2" -- Level kelipatan speed fisik (1 = Normal, 2 = Cepat, 3 = Sangat Cepat)
 inputSpeed.TextColor3 = Color3.fromRGB(0, 191, 255)
-inputSpeed.PlaceholderText = "Angka Speed"
+inputSpeed.PlaceholderText = "Multiplier (1-5)"
 inputSpeed.Font = Enum.Font.GothamBold
 inputSpeed.TextSize = 14
 inputSpeed.ClearTextOnFocus = false
@@ -278,9 +272,7 @@ uiListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 uiListLayout.Parent = scrollFrame
 Instance.new("UIPadding", scrollFrame).PaddingTop = UDim.new(0, 5)
 
--- -----------------------------------------------------------------------------
--- FLOATING MINIMIZE ICON WITH ABSOLUTE COORDINATE MAPPING
--- -----------------------------------------------------------------------------
+-- Floating Minimize Icon
 local minIcon = Instance.new("ImageButton")
 minIcon.Size = UDim2.new(0, 54, 0, 54)
 minIcon.Position = UDim2.new(0.5, -27, 0.2, 0)
@@ -307,21 +299,18 @@ closeBtn.Activated:Connect(function()
 	screenGui:Destroy()
 end)
 
--- Sinkronisasi Posisi Mutlak Saat Perkecil/Minimize
 minBtn.Activated:Connect(function()
 	mainFrame.Visible = false
 	minIcon.Position = mainFrame.Position
 	minIcon.Visible = true
 end)
 
--- Sinkronisasi Posisi Mutlak Saat Dibuka Kembali (Tetap Di Titik Geser Terakhir)
 minIcon.Activated:Connect(function()
 	minIcon.Visible = false
 	mainFrame.Position = minIcon.Position
 	mainFrame.Visible = true
 end)
 
--- Integrasi Pengisian Kartu List Player Aktif
 local function updatePlayerList()
 	for _, child in ipairs(scrollFrame:GetChildren()) do
 		if child:IsA("TextButton") then child:Destroy() end
@@ -355,10 +344,8 @@ dropdownBtn.Activated:Connect(function()
 	if scrollFrame.Visible then updatePlayerList() end
 end)
 
--- Driver Script Teleport Instan Tanpa Detik Delay
 teleportBtn.Activated:Connect(function()
 	if isTeleporting then return end
-	
 	if not selectedPlayer or not selectedPlayer.Character or not selectedPlayer.Character:FindFirstChild("HumanoidRootPart") then
 		dropdownBtn.Text = "Target Tidak Ditemukan!"
 		task.wait(1.5)
@@ -368,15 +355,11 @@ teleportBtn.Activated:Connect(function()
 	
 	local myChar = localPlayer.Character
 	if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then return end
-	
 	isTeleporting = true
 	scrollFrame.Visible = false
 	
 	if selectedPlayer and selectedPlayer.Character and selectedPlayer.Character:FindFirstChild("HumanoidRootPart") and myChar:FindFirstChild("HumanoidRootPart") then
-		local targetCFrame = selectedPlayer.Character.HumanoidRootPart.CFrame
-		myChar.HumanoidRootPart.CFrame = targetCFrame * CFrame.new(0, 0, 3)
-	else
-		showNotification("LaperGank Error", "Gagal memuat koordinat target!", 3)
+		myChar.HumanoidRootPart.CFrame = selectedPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 3)
 	end
 	
 	dropdownBtn.Text = "Pilih Target Player..."
@@ -385,14 +368,14 @@ teleportBtn.Activated:Connect(function()
 end)
 
 -- -----------------------------------------------------------------------------
--- WALKSPEED ++ LOOP MECHANIC CORE (Anti-Reset Protection)
+-- ADVANCED VELOCITY BYPASS LOOP (Tembus Anti-Cheat Speed Game)
 -- -----------------------------------------------------------------------------
 inputSpeed.FocusLost:Connect(function()
 	local numericValue = tonumber(inputSpeed.Text)
 	if numericValue then
-		speedSettings.Value = numericValue
+		speedSettings.Multiplier = numericValue
 	else
-		inputSpeed.Text = tostring(speedSettings.Value)
+		inputSpeed.Text = tostring(speedSettings.Multiplier)
 	end
 end)
 
@@ -405,30 +388,26 @@ toggleSpeedBtn.Activated:Connect(function()
 		toggleStroke.Color = Color3.fromRGB(70, 255, 70)
 		
 		local numericValue = tonumber(inputSpeed.Text)
-		if numericValue then speedSettings.Value = numericValue end
+		if numericValue then speedSettings.Multiplier = numericValue end
 	else
 		toggleSpeedBtn.Text = "SPEED: OFF"
 		toggleSpeedBtn.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
 		toggleSpeedBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
 		toggleStroke.Color = Color3.fromRGB(255, 70, 70)
-		
-		-- Kembalikan ke kecepatan normal Roblox jika dinonaktifkan
-		pcall(function()
-			local char = localPlayer.Character
-			if char and char:FindFirstChild("Humanoid") then
-				char.Humanoid.WalkSpeed = 16
-			end
-		end)
 	end
 end)
 
--- Driver Pengamanan Kecepatan Konstan via Heartbeat
+-- Sistem Bypass Pergerakan Fisik Murni (Tembus Segala Jenis Anti-Cheat Properti WalkSpeed)
 RunService.Heartbeat:Connect(function()
 	if speedSettings.Enabled then
 		pcall(function()
 			local char = localPlayer.Character
-			if char and char:FindFirstChild("Humanoid") then
-				char.Humanoid.WalkSpeed = speedSettings.Value
+			local hrp = char and char:FindFirstChild("HumanoidRootPart")
+			local hum = char and char:FindFirstChild("Humanoid")
+			
+			if hrp and hum and hum.MoveDirection.Magnitude > 0 then
+				-- Memajukan koordinat posisi RootPart secara konstan berdasarkan arah gerak analog/tombol HP Anda
+				hrp.CFrame = hrp.CFrame + (hum.MoveDirection * (speedSettings.Multiplier * 0.4))
 			end
 		end)
 	end
