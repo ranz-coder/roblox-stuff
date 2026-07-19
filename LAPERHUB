@@ -10,7 +10,7 @@ local function sendSystemNotification(title, msg, duration)
     end)
 end
 local games = {
-    [93978595733734] = "https://raw.githubusercontent.com/ranz-coder/roblox-sc/refs/heads/script/LaPer-UNI.lua", -- Violence District
+    [93978595733734] = "https://raw.githubusercontent.com/ranz-coder/roblox-sc/refs/heads/script/LaPer-HUB.lua", -- Khusus Violence District
 }
 
 local fallbackUniversalURL = "https://raw.githubusercontent.com/ranz-coder/roblox-sc/refs/heads/script/LaPer-UNI.lua"
@@ -19,9 +19,9 @@ local currentPlaceId = game.PlaceId
 local targetScriptURL = games[currentPlaceId]
 
 if targetScriptURL then
-    sendSystemNotification("LaperGank System", "Map Spesifik Terdeteksi! Memuat Hub...", 3)
+    sendSystemNotification("LaperGank System", "Peta Khusus Terdeteksi! Memuat Hub...", 3)
 else
-    sendSystemNotification("LaperGank System", "Map Universal! Menggunakan LaPer-UNI...", 3)
+    sendSystemNotification("LaperGank System", "Peta Universal! Menggunakan LaPer-UNI...", 3)
     targetScriptURL = fallbackUniversalURL
 end
 
@@ -33,12 +33,16 @@ if targetScriptURL then
     if success and scriptContent then
         local executeScript, err = loadstring(scriptContent)
         if executeScript then
-            pcall(executeScript)
-            sendSystemNotification("Laper Gank Panel", "LaPer-HUB Berhasil Dijalankan!", 3)
+            local runSuccess, runError = pcall(executeScript)
+            if runSuccess then
+                sendSystemNotification("Laper Gank Panel", "LaPer-HUB Berhasil Dijalankan!", 3)
+            else
+                sendSystemNotification("Runtime Error", "Script utama gagal berjalan: " .. tostring(runError), 5)
+            end
         else
             sendSystemNotification("Loader Error", "Gagal memproses kode: " .. tostring(err), 5)
         end
     else
-        sendSystemNotification("Connection Error", "Gagal mengambil data dari repositori ranz-coder!", 5)
+        sendSystemNotification("Connection Error", "Gagal mengambil data dari repositori cloud!", 5)
     end
 end
