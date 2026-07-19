@@ -2,10 +2,10 @@
 -- PROJECT: LAPER GANK ADMIN - ANDROID SWITCH SLIDER SPEED HUD
 -- TEMA: Android Mobile App (Abu-abu Gelap, Ungu & Biru Neon)
 -- UTILITY: Number TextBox Input + Slider Toggle Switch Switch (ON/OFF)
+-- OPTIMASI: 100% Delta Safe - Zero Tween & Non-Crash Graph Driver
 -- =============================================================================
 
 local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
 local StarterGui = game:GetService("StarterGui")
@@ -239,23 +239,21 @@ local inputStroke = Instance.new("UIStroke")
 inputStroke.Color = Color3.fromRGB(45, 45, 55)
 inputStroke.Parent = inputSpeed
 
--- Komponen Slider Switch (Garis Trek Belakang Sakelar)
+-- Komponen Slider Switch (Garis Trek Belakang Sakelar - Warna Statis Terkunci)
 local switchTrack = Instance.new("TextButton")
 switchTrack.Size = UDim2.new(0, 45, 0, 22)
 switchTrack.Position = UDim2.new(0.95, -45, 0.5, -11)
-switchTrack.BackgroundColor3 = Color3.fromRGB(40, 20, 20) -- Merah Redup saat OFF
+switchTrack.BackgroundColor3 = Color3.fromRGB(50, 25, 25) -- Basis Merah Statis Aman
 switchTrack.Text = ""
+switchTrack.BorderSizePixel = 0
 switchTrack.Parent = cardSpeed
 Instance.new("UICorner", switchTrack).CornerRadius = UDim.new(1, 0)
-local switchStroke = Instance.new("UIStroke")
-switchStroke.Color = Color3.fromRGB(255, 70, 70)
-switchStroke.Parent = switchTrack
 
 -- Bulatan Slider yang Bergeser Kanan-Kiri
 local switchBall = Instance.new("Frame")
 switchBall.Size = UDim2.new(0, 16, 0, 16)
-switchBall.Position = UDim2.new(0, 3, 0.5, -8) -- Posisi kiri (OFF)
-switchBall.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+switchBall.Position = UDim2.new(0, 3, 0.5, -8)
+switchBall.BackgroundColor3 = Color3.fromRGB(220, 220, 220)
 switchBall.BorderSizePixel = 0
 switchBall.Parent = switchTrack
 Instance.new("UICorner", switchBall).CornerRadius = UDim.new(1, 0)
@@ -318,6 +316,12 @@ makeDraggable(minIcon, minIcon)
 -- -----------------------------------------------------------------------------
 closeBtn.Activated:Connect(function()
 	speedSettings.Enabled = false
+	pcall(function()
+		local char = localPlayer.Character
+		if char and char:FindFirstChild("Humanoid") then
+			char.Humanoid.WalkSpeed = 16
+		end
+	end)
 	screenGui:Destroy()
 end)
 
@@ -402,7 +406,7 @@ inputSpeed.FocusLost:Connect(function()
 end)
 
 -- -----------------------------------------------------------------------------
--- INTERAKSI SLIDER SWITCH TOGGLE (ANIMASI GESER ON/OFF)
+-- SAFE INTERAKSI SLIDER SWITCH TOGGLE (INSTANT FRAME CALCULATOR - ANTI BLANK)
 -- -----------------------------------------------------------------------------
 switchTrack.Activated:Connect(function()
 	speedSettings.Enabled = not speedSettings.Enabled
@@ -411,39 +415,51 @@ switchTrack.Activated:Connect(function()
 	if numericValue then speedSettings.TargetSpeed = numericValue end
 	
 	if speedSettings.Enabled then
-		-- Animasi Geser ke Kanan [ON] (Aksen Hijau / Ungu)
-		TweenService:Create(switchBall, TweenInfo.new(0.2), {Position = UDim2.new(1, -19, 0.5, -8)}):Play()
-		switchTrack.BackgroundColor3 = Color3.fromRGB(20, 40, 20)
-		switchStroke.Color = Color3.fromRGB(70, 255, 70)
+		-- Pindah Instan Kanan & Ubah Warna Latar Belakang (Tanpa Menyentuh Stroke)
+		switchBall.Position = UDim2.new(1, -19, 0.5, -8)
+		switchTrack.BackgroundColor3 = Color3.fromRGB(25, 60, 25)
 		statusLabel.Text = "ON"
 		statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
 	else
-		-- Animasi Geser Balik ke Kiri [OFF] (Aksen Merah)
-		TweenService:Create(switchBall, TweenInfo.new(0.2), {Position = UDim2.new(0, 3, 0.5, -8)}):Play()
-		switchTrack.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
-		switchStroke.Color = Color3.fromRGB(255, 70, 70)
+		-- Pindah Instan Kiri & Kembalikan Warna Awal
+		switchBall.Position = UDim2.new(0, 3, 0.5, -8)
+		switchTrack.BackgroundColor3 = Color3.fromRGB(50, 25, 25)
 		statusLabel.Text = "OFF"
 		statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+		
+		-- Bersihkan paksa properti agar saat OFF speed boost mati total dan kembali normal ke 16
+		pcall(function()
+			local char = localPlayer.Character
+			if char and char:FindFirstChild("Humanoid") then
+				char.Humanoid.WalkSpeed = 16
+			end
+		end)
 	end
 end)
 
 -- -----------------------------------------------------------------------------
--- EMULATOR BYPASS FISIKA MOVEMENT (Konversi Angka Roblox ke Delta Stud)
+-- EMULATOR BYPASS FISIKA MOVEMENT (Kunci Kecepatan Murni Aman dari Anti-Cheat)
 -- -----------------------------------------------------------------------------
 RunService.Heartbeat:Connect(function(deltaTime)
-	if speedSettings.Enabled and speedSettings.TargetSpeed > 16 then
-		pcall(function()
-			local char = localPlayer.Character
-			local hrp = char and char:FindFirstChild("HumanoidRootPart")
-			local hum = char and char:FindFirstChild("Humanoid")
-			
-			if hrp and hum and hum.MoveDirection.Magnitude > 0 then
-				-- Mengonversi angka WalkSpeed Roblox murni ke kalkulasi delta fisik
-				local extraStuds = (speedSettings.TargetSpeed - 16) * deltaTime
-				hrp.CFrame = hrp.CFrame + (hum.MoveDirection * extraStuds)
+	pcall(function()
+		local char = localPlayer.Character
+		local hrp = char and char:FindFirstChild("HumanoidRootPart")
+		local hum = char and char:FindFirstChild("Humanoid")
+		
+		if hrp and hum then
+			if speedSettings.Enabled and speedSettings.TargetSpeed > 16 then
+				if hum.MoveDirection.Magnitude > 0 then
+					local extraStuds = (speedSettings.TargetSpeed - 16) * deltaTime
+					hrp.CFrame = hrp.CFrame + (hum.MoveDirection * extraStuds)
+				end
+			else
+				-- Jika OFF, pastikan speed boost murni game kembali ke angka 16 murni
+				if hum.WalkSpeed ~= 16 and not speedSettings.Enabled then
+					hum.WalkSpeed = 16
+				end
 			end
-		end)
-	end
+		end
+	end)
 end)
 
 Players.PlayerAdded:Connect(updatePlayerList)
