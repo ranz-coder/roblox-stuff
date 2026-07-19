@@ -10,7 +10,7 @@ local function sendSystemNotification(title, msg, duration)
     end)
 end
 local games = {
-    [93978595733734] = "https://raw.githubusercontent.com/ranz-coder/roblox-sc/refs/heads/script/LaPer-UNI", --Violence District
+    [93978595733734] = "https://raw.githubusercontent.com/ranz-coder/roblox-sc/refs/heads/script/LaPer-UNI", -- Violence District
 }
 
 local fallbackUniversalURL = "https://raw.githubusercontent.com/ranz-coder/roblox-sc/refs/heads/script/LaPer-UNI"
@@ -19,9 +19,9 @@ local currentPlaceId = game.PlaceId
 local targetScriptURL = games[currentPlaceId]
 
 if targetScriptURL then
-    sendSystemNotification("LaperGank System", "Peta Khusus Terdeteksi! Memuat Hub...", 3)
+    sendSystemNotification("LaperGank System", "Map Tertentu nih si anjing! Sabar loading HUB kontol...", 3)
 else
-    sendSystemNotification("LaperGank System", "Peta Universal! Menggunakan LaPer-UNI...", 3)
+    sendSystemNotification("LaperGank System", "Map Bebas nih si anjing! Sabar loading Kontol...", 3)
     targetScriptURL = fallbackUniversalURL
 end
 
@@ -35,7 +35,7 @@ if targetScriptURL then
         if executeScript then
             local runSuccess, runError = pcall(executeScript)
             if runSuccess then
-                sendSystemNotification("Laper Gank Panel", "LaPer-HUB Berhasil Dijalankan!", 3)
+                sendSystemNotification("Laper Gank SAY", "LAPERGANK HUB NYALA NIH ANJINGG!", 3)
             else
                 sendSystemNotification("Runtime Error", "Script utama gagal berjalan: " .. tostring(runError), 5)
             end
@@ -43,6 +43,6 @@ if targetScriptURL then
             sendSystemNotification("Loader Error", "Gagal memproses kode: " .. tostring(err), 5)
         end
     else
-        sendSystemNotification("Connection Error", "Gagal mengambil data dari repositori cloud!", 5)
+        sendSystemNotification("Connection Error", "Gagal ngambil data si anjing, nunggu owner benerin ya kontol!", 5)
     end
 end
