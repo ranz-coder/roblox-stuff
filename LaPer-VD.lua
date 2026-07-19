@@ -1,7 +1,7 @@
 -- =============================================================================
--- PROJECT: LAPER GANK ADMIN - PREMIUM ANDROID HUD DASBOR (BYPASS SPEED EDITION)
+-- PROJECT: LAPER GANK ADMIN - MOBILE SWITCH DASHBOARD (COMPACT VERSION)
 -- TEMA: Android Mobile App (Abu-abu Gelap, Ungu & Biru Neon)
--- OPTIMASI: 100% Delta Executor Mobile Safe & Anti-Cheat Speed Bypass
+-- MECHANIC: TextBox + Slider Switch Toggle (Instant Safe State Normalizer)
 -- =============================================================================
 
 local Players = game:GetService("Players")
@@ -37,7 +37,7 @@ screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.Parent = targetParent
 
-showNotification("LaperGank", "Dasbor Premium Siap Digunakan", 5)
+showNotification("LaperGank", "Dasbor Switch Premium Siap", 5)
 
 -- -----------------------------------------------------------------------------
 -- GLOBAL STATE MAPPING
@@ -46,11 +46,11 @@ local selectedPlayer = nil
 local isTeleporting = false
 local speedSettings = {
 	Enabled = false,
-	Multiplier = 1 -- Nilai tambahan kecepatan fisik
+	TargetSpeed = 50
 }
 
 -- -----------------------------------------------------------------------------
--- ADVANCED DYNAMIC DRAG MODULE (Kunci Koordinat Bebas Lompat)
+-- ADVANCED DYNAMIC DRAG MODULE
 -- -----------------------------------------------------------------------------
 local function makeDraggable(gui, dragHandle)
 	local dragging, dragInput, dragStart, startPos
@@ -78,12 +78,11 @@ local function makeDraggable(gui, dragHandle)
 end
 
 -- -----------------------------------------------------------------------------
--- VISUAL RENDER ENGINE: LUXURY FLOATING DASHBOARD
+-- VISUAL RENDER ENGINE: FLOATING DASHBOARD GUI
 -- -----------------------------------------------------------------------------
-
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 290, 0, 280)
-mainFrame.Position = UDim2.new(0.5, -145, 0.4, -140)
+mainFrame.Size = UDim2.new(0, 290, 0, 220) -- Ukuran pas dan ramping untuk Mobile
+mainFrame.Position = UDim2.new(0.5, -145, 0.4, -110)
 mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 24)
 mainFrame.BorderSizePixel = 0
 mainFrame.Active = true
@@ -91,7 +90,7 @@ mainFrame.Parent = screenGui
 Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 14)
 
 local mainStroke = Instance.new("UIStroke")
-mainStroke.Color = Color3.fromRGB(138, 43, 226) -- Aksen Ungu Neon Utama
+mainStroke.Color = Color3.fromRGB(138, 43, 226)
 mainStroke.Thickness = 2.5
 mainStroke.Parent = mainFrame
 
@@ -123,7 +122,7 @@ title.Size = UDim2.new(0.6, 0, 1, 0)
 title.Position = UDim2.new(0.05, 0, 0, 0)
 title.BackgroundTransparency = 1
 title.Text = "LAPER GANK HUB v2"
-title.TextColor3 = Color3.fromRGB(0, 191, 255) -- Biru Cyberpunk
+title.TextColor3 = Color3.fromRGB(0, 191, 255)
 title.Font = Enum.Font.GothamBlack
 title.TextSize = 14
 title.TextXAlignment = Enum.TextXAlignment.Left
@@ -150,7 +149,7 @@ minBtn.TextSize = 14
 minBtn.Parent = topBar
 
 local contentGrid = Instance.new("Frame")
-contentGrid.Size = UDim2.new(0.92, 0, 0, 215)
+contentGrid.Size = UDim2.new(0.92, 0, 0, 160)
 contentGrid.Position = UDim2.new(0.04, 0, 0, 52)
 contentGrid.BackgroundTransparency = 1
 contentGrid.Parent = mainFrame
@@ -160,7 +159,7 @@ gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
 gridLayout.Padding = UDim.new(0, 10)
 gridLayout.Parent = contentGrid
 
--- CARD 1: SEKTOR TELEPORTATION SYSTEM
+-- CARD 1: TELEPORT SECTOR
 local cardTP = Instance.new("Frame")
 cardTP.Size = UDim2.new(1, 0, 0, 95)
 cardTP.BackgroundColor3 = Color3.fromRGB(26, 26, 32)
@@ -170,7 +169,6 @@ cardTP.Parent = contentGrid
 Instance.new("UICorner", cardTP).CornerRadius = UDim.new(0, 8)
 local strokeTP = Instance.new("UIStroke")
 strokeTP.Color = Color3.fromRGB(45, 45, 55)
-strokeTP.Thickness = 1
 strokeTP.Parent = cardTP
 
 local dropdownBtn = Instance.new("TextButton")
@@ -185,7 +183,6 @@ dropdownBtn.Parent = cardTP
 Instance.new("UICorner", dropdownBtn).CornerRadius = UDim.new(0, 6)
 local dropStroke = Instance.new("UIStroke")
 dropStroke.Color = Color3.fromRGB(0, 191, 255)
-dropStroke.Thickness = 1
 dropStroke.Parent = dropdownBtn
 
 local teleportBtn = Instance.new("TextButton")
@@ -200,12 +197,11 @@ teleportBtn.Parent = cardTP
 Instance.new("UICorner", teleportBtn).CornerRadius = UDim.new(0, 6)
 local telStroke = Instance.new("UIStroke")
 telStroke.Color = Color3.fromRGB(138, 43, 226)
-telStroke.Thickness = 1
 telStroke.Parent = teleportBtn
 
--- CARD 2: SEKTOR WALKSPEED ++ CONTROLLER
+-- CARD 2: SPEED INPUT + SLIDER SWITCH TOGGLE
 local cardSpeed = Instance.new("Frame")
-cardSpeed.Size = UDim2.new(1, 0, 0, 52)
+cardSpeed.Size = UDim2.new(1, 0, 0, 65)
 cardSpeed.BackgroundColor3 = Color3.fromRGB(26, 26, 32)
 cardSpeed.BorderSizePixel = 0
 cardSpeed.LayoutOrder = 2
@@ -213,16 +209,26 @@ cardSpeed.Parent = contentGrid
 Instance.new("UICorner", cardSpeed).CornerRadius = UDim.new(0, 8)
 local strokeSpeed = Instance.new("UIStroke")
 strokeSpeed.Color = Color3.fromRGB(45, 45, 55)
-strokeSpeed.Thickness = 1
 strokeSpeed.Parent = cardSpeed
 
+local speedLabel = Instance.new("TextLabel")
+speedLabel.Size = UDim2.new(0.5, 0, 0, 20)
+speedLabel.Position = UDim2.new(0.05, 0, 0, 6)
+speedLabel.BackgroundTransparency = 1
+speedLabel.Text = "MASUKKAN SPEED:"
+speedLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+speedLabel.Font = Enum.Font.GothamBold
+speedLabel.TextSize = 10
+speedLabel.TextXAlignment = Enum.TextXAlignment.Left
+speedLabel.Parent = cardSpeed
+
 local inputSpeed = Instance.new("TextBox")
-inputSpeed.Size = UDim2.new(0.55, 0, 0, 34)
-inputSpeed.Position = UDim2.new(0.05, 0, 0.5, -17)
+inputSpeed.Size = UDim2.new(0.45, 0, 0, 30)
+inputSpeed.Position = UDim2.new(0.05, 0, 0, 26)
 inputSpeed.BackgroundColor3 = Color3.fromRGB(16, 16, 20)
-inputSpeed.Text = "2" -- Level kelipatan speed fisik (1 = Normal, 2 = Cepat, 3 = Sangat Cepat)
+inputSpeed.Text = "50"
 inputSpeed.TextColor3 = Color3.fromRGB(0, 191, 255)
-inputSpeed.PlaceholderText = "Multiplier (1-5)"
+inputSpeed.PlaceholderText = "Angka..."
 inputSpeed.Font = Enum.Font.GothamBold
 inputSpeed.TextSize = 14
 inputSpeed.ClearTextOnFocus = false
@@ -230,23 +236,37 @@ inputSpeed.Parent = cardSpeed
 Instance.new("UICorner", inputSpeed).CornerRadius = UDim.new(0, 6)
 local inputStroke = Instance.new("UIStroke")
 inputStroke.Color = Color3.fromRGB(45, 45, 55)
-inputStroke.Thickness = 1
 inputStroke.Parent = inputSpeed
 
-local toggleSpeedBtn = Instance.new("TextButton")
-toggleSpeedBtn.Size = UDim2.new(0.32, 0, 0, 34)
-toggleSpeedBtn.Position = UDim2.new(0.63, 0, 0.5, -17)
-toggleSpeedBtn.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
-toggleSpeedBtn.Text = "SPEED: OFF"
-toggleSpeedBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
-toggleSpeedBtn.Font = Enum.Font.GothamBlack
-toggleSpeedBtn.TextSize = 11
-toggleSpeedBtn.Parent = cardSpeed
-Instance.new("UICorner", toggleSpeedBtn).CornerRadius = UDim.new(0, 6)
-local toggleStroke = Instance.new("UIStroke")
-toggleStroke.Color = Color3.fromRGB(255, 70, 70)
-toggleStroke.Thickness = 1
-toggleStroke.Parent = toggleSpeedBtn
+local switchTrack = Instance.new("TextButton")
+switchTrack.Size = UDim2.new(0, 45, 0, 22)
+switchTrack.Position = UDim2.new(0.95, -45, 0.5, -11)
+switchTrack.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
+switchTrack.Text = ""
+switchTrack.Parent = cardSpeed
+Instance.new("UICorner", switchTrack).CornerRadius = UDim.new(1, 0)
+local switchStroke = Instance.new("UIStroke")
+switchStroke.Color = Color3.fromRGB(255, 70, 70)
+switchStroke.Parent = switchTrack
+
+local switchBall = Instance.new("Frame")
+switchBall.Size = UDim2.new(0, 16, 0, 16)
+switchBall.Position = UDim2.new(0, 3, 0.5, -8)
+switchBall.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+switchBall.BorderSizePixel = 0
+switchBall.Parent = switchTrack
+Instance.new("UICorner", switchBall).CornerRadius = UDim.new(1, 0)
+
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Size = UDim2.new(0, 40, 0, 20)
+statusLabel.Position = UDim2.new(0.95, -95, 0.5, -10)
+statusLabel.BackgroundTransparency = 1
+statusLabel.Text = "OFF"
+statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+statusLabel.Font = Enum.Font.GothamBlack
+statusLabel.TextSize = 11
+statusLabel.TextXAlignment = Enum.TextXAlignment.Right
+statusLabel.Parent = cardSpeed
 
 -- DROPDOWN OVERLAY LIST ELEMENT
 local scrollFrame = Instance.new("ScrollingFrame")
@@ -262,7 +282,6 @@ scrollFrame.Parent = mainFrame
 Instance.new("UICorner", scrollFrame).CornerRadius = UDim.new(0, 8)
 local scrollStroke = Instance.new("UIStroke")
 scrollStroke.Color = Color3.fromRGB(0, 191, 255)
-scrollStroke.Thickness = 1.5
 scrollStroke.Parent = scrollFrame
 
 local uiListLayout = Instance.new("UIListLayout")
@@ -291,11 +310,16 @@ iconStroke.Parent = minIcon
 makeDraggable(minIcon, minIcon)
 
 -- -----------------------------------------------------------------------------
--- MECHANIC CORE OPERATIONAL BINDINGS
+-- MECHANIC OPERATIONAL BINDINGS
 -- -----------------------------------------------------------------------------
-
 closeBtn.Activated:Connect(function()
 	speedSettings.Enabled = false
+	pcall(function()
+		local char = localPlayer.Character
+		if char and char:FindFirstChild("Humanoid") then
+			char.Humanoid.WalkSpeed = 16
+		end
+	end)
 	screenGui:Destroy()
 end)
 
@@ -367,50 +391,71 @@ teleportBtn.Activated:Connect(function()
 	isTeleporting = false
 end)
 
--- -----------------------------------------------------------------------------
--- ADVANCED VELOCITY BYPASS LOOP (Tembus Anti-Cheat Speed Game)
--- -----------------------------------------------------------------------------
 inputSpeed.FocusLost:Connect(function()
 	local numericValue = tonumber(inputSpeed.Text)
 	if numericValue then
-		speedSettings.Multiplier = numericValue
+		speedSettings.TargetSpeed = numericValue
 	else
-		inputSpeed.Text = tostring(speedSettings.Multiplier)
+		inputSpeed.Text = tostring(speedSettings.TargetSpeed)
 	end
 end)
 
-toggleSpeedBtn.Activated:Connect(function()
+-- -----------------------------------------------------------------------------
+-- INTERAKSI TOGGLE SAKELAR (STATE NORMALIZER INTEGRATED)
+-- -----------------------------------------------------------------------------
+switchTrack.Activated:Connect(function()
 	speedSettings.Enabled = not speedSettings.Enabled
+	
+	local numericValue = tonumber(inputSpeed.Text)
+	if numericValue then speedSettings.TargetSpeed = numericValue end
+	
 	if speedSettings.Enabled then
-		toggleSpeedBtn.Text = "SPEED: ON"
-		toggleSpeedBtn.BackgroundColor3 = Color3.fromRGB(20, 40, 20)
-		toggleSpeedBtn.TextColor3 = Color3.fromRGB(100, 255, 100)
-		toggleStroke.Color = Color3.fromRGB(70, 255, 70)
-		
-		local numericValue = tonumber(inputSpeed.Text)
-		if numericValue then speedSettings.Multiplier = numericValue end
+		TweenService:Create(switchBall, TweenInfo.new(0.2), {Position = UDim2.new(1, -19, 0.5, -8)}):Play()
+		switchTrack.BackgroundColor3 = Color3.fromRGB(20, 40, 20)
+		switchStroke.Color = Color3.fromRGB(70, 255, 70)
+		statusLabel.Text = "ON"
+		statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
 	else
-		toggleSpeedBtn.Text = "SPEED: OFF"
-		toggleSpeedBtn.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
-		toggleSpeedBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
-		toggleStroke.Color = Color3.fromRGB(255, 70, 70)
-	end
-end)
-
--- Sistem Bypass Pergerakan Fisik Murni (Tembus Segala Jenis Anti-Cheat Properti WalkSpeed)
-RunService.Heartbeat:Connect(function()
-	if speedSettings.Enabled then
+		-- [STATE RESTORATION] Kembalikan ke posisi semula dan paksa normal
+		TweenService:Create(switchBall, TweenInfo.new(0.2), {Position = UDim2.new(0, 3, 0.5, -8)}):Play()
+		switchTrack.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
+		switchStroke.Color = Color3.fromRGB(255, 70, 70)
+		statusLabel.Text = "OFF"
+		statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+		
+		-- Bersihkan paksa properti internal agar tidak bug/stuck berjalan cepat
 		pcall(function()
 			local char = localPlayer.Character
-			local hrp = char and char:FindFirstChild("HumanoidRootPart")
-			local hum = char and char:FindFirstChild("Humanoid")
-			
-			if hrp and hum and hum.MoveDirection.Magnitude > 0 then
-				-- Memajukan koordinat posisi RootPart secara konstan berdasarkan arah gerak analog/tombol HP Anda
-				hrp.CFrame = hrp.CFrame + (hum.MoveDirection * (speedSettings.Multiplier * 0.4))
+			if char and char:FindFirstChild("Humanoid") then
+				char.Humanoid.WalkSpeed = 16
 			end
 		end)
 	end
+end)
+
+-- -----------------------------------------------------------------------------
+-- LOOP DETEKSI BYPASS & NORMALIZATION DRIVER
+-- -----------------------------------------------------------------------------
+RunService.Heartbeat:Connect(function(deltaTime)
+	pcall(function()
+		local char = localPlayer.Character
+		local hrp = char and char:FindFirstChild("HumanoidRootPart")
+		local hum = char and char:FindFirstChild("Humanoid")
+		
+		if hrp and hum then
+			if speedSettings.Enabled and speedSettings.TargetSpeed > 16 then
+				if hum.MoveDirection.Magnitude > 0 then
+					local extraStuds = (speedSettings.TargetSpeed - 16) * deltaTime
+					hrp.CFrame = hrp.CFrame + (hum.MoveDirection * extraStuds)
+				end
+			else
+				-- Driver pelindung agar speed murni game tidak rusak saat OFF
+				if hum.WalkSpeed ~= 16 and not speedSettings.Enabled then
+					hum.WalkSpeed = 16
+				end
+			end
+		end
+	end)
 end)
 
 Players.PlayerAdded:Connect(updatePlayerList)
