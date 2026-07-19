@@ -1,9 +1,3 @@
--- =============================================================================
--- PROJECT: LAPER GANK ADMIN - INSTANT TELEPORT EDITION (NO DELAY)
--- TEMA: Android Mobile App (Abu-abu Gelap, Ungu & Biru Neon)
--- OPTIMASI: 100% Delta Executor Mobile Safe (Menggunakan .Activated)
--- =============================================================================
-
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
