@@ -1,11 +1,10 @@
 -- =============================================================================
--- PROJECT: LAPER GANK ADMIN - PREMIUM ANDROID HUD DASBOR (BYPASS SPEED EDITION)
+-- PROJECT: LAPER GANK ADMIN - PREMIUM ANDROID HUD DASBOR (STABLE BYPASS)
 -- TEMA: Android Mobile App (Abu-abu Gelap, Ungu & Biru Neon)
--- OPTIMASI: 100% Delta Executor Mobile Safe & Anti-Cheat Speed Bypass
+-- OPTIMASI: 100% Delta Executor Mobile Safe & Stable Speed Override
 -- =============================================================================
 
 local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
 local StarterGui = game:GetService("StarterGui")
@@ -46,7 +45,7 @@ local selectedPlayer = nil
 local isTeleporting = false
 local speedSettings = {
 	Enabled = false,
-	Multiplier = 1 -- Nilai tambahan kecepatan fisik
+	Multiplier = 2 -- Nilai kelipatan fisik bawaan yang stabil
 }
 
 -- -----------------------------------------------------------------------------
@@ -80,7 +79,6 @@ end
 -- -----------------------------------------------------------------------------
 -- VISUAL RENDER ENGINE: LUXURY FLOATING DASHBOARD
 -- -----------------------------------------------------------------------------
-
 local mainFrame = Instance.new("Frame")
 mainFrame.Size = UDim2.new(0, 290, 0, 280)
 mainFrame.Position = UDim2.new(0.5, -145, 0.4, -140)
@@ -91,7 +89,7 @@ mainFrame.Parent = screenGui
 Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 14)
 
 local mainStroke = Instance.new("UIStroke")
-mainStroke.Color = Color3.fromRGB(138, 43, 226) -- Aksen Ungu Neon Utama
+mainStroke.Color = Color3.fromRGB(138, 43, 226)
 mainStroke.Thickness = 2.5
 mainStroke.Parent = mainFrame
 
@@ -123,7 +121,7 @@ title.Size = UDim2.new(0.6, 0, 1, 0)
 title.Position = UDim2.new(0.05, 0, 0, 0)
 title.BackgroundTransparency = 1
 title.Text = "LAPER GANK HUB v2"
-title.TextColor3 = Color3.fromRGB(0, 191, 255) -- Biru Cyberpunk
+title.TextColor3 = Color3.fromRGB(0, 191, 255)
 title.Font = Enum.Font.GothamBlack
 title.TextSize = 14
 title.TextXAlignment = Enum.TextXAlignment.Left
@@ -220,7 +218,7 @@ local inputSpeed = Instance.new("TextBox")
 inputSpeed.Size = UDim2.new(0.55, 0, 0, 34)
 inputSpeed.Position = UDim2.new(0.05, 0, 0.5, -17)
 inputSpeed.BackgroundColor3 = Color3.fromRGB(16, 16, 20)
-inputSpeed.Text = "2" -- Level kelipatan speed fisik (1 = Normal, 2 = Cepat, 3 = Sangat Cepat)
+inputSpeed.Text = "2"
 inputSpeed.TextColor3 = Color3.fromRGB(0, 191, 255)
 inputSpeed.PlaceholderText = "Multiplier (1-5)"
 inputSpeed.Font = Enum.Font.GothamBold
@@ -243,8 +241,10 @@ toggleSpeedBtn.Font = Enum.Font.GothamBlack
 toggleSpeedBtn.TextSize = 11
 toggleSpeedBtn.Parent = cardSpeed
 Instance.new("UICorner", toggleSpeedBtn).CornerRadius = UDim.new(0, 6)
+
+-- PROTEKSI GRAFIS: Mengunci garis pinggir tombol agar statis mencegah crash visual
 local toggleStroke = Instance.new("UIStroke")
-toggleStroke.Color = Color3.fromRGB(255, 70, 70)
+toggleStroke.Color = Color3.fromRGB(60, 60, 70) 
 toggleStroke.Thickness = 1
 toggleStroke.Parent = toggleSpeedBtn
 
@@ -272,7 +272,7 @@ uiListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 uiListLayout.Parent = scrollFrame
 Instance.new("UIPadding", scrollFrame).PaddingTop = UDim.new(0, 5)
 
--- Floating Minimize Icon
+-- Floating Minimize Icon (Coordinate-Synced)
 local minIcon = Instance.new("ImageButton")
 minIcon.Size = UDim2.new(0, 54, 0, 54)
 minIcon.Position = UDim2.new(0.5, -27, 0.2, 0)
@@ -293,9 +293,14 @@ makeDraggable(minIcon, minIcon)
 -- -----------------------------------------------------------------------------
 -- MECHANIC CORE OPERATIONAL BINDINGS
 -- -----------------------------------------------------------------------------
-
 closeBtn.Activated:Connect(function()
 	speedSettings.Enabled = false
+	pcall(function()
+		local char = localPlayer.Character
+		if char and char:FindFirstChild("Humanoid") then
+			char.Humanoid.WalkSpeed = 16
+		end
+	end)
 	screenGui:Destroy()
 end)
 
@@ -368,7 +373,7 @@ teleportBtn.Activated:Connect(function()
 end)
 
 -- -----------------------------------------------------------------------------
--- ADVANCED VELOCITY BYPASS LOOP (Tembus Anti-Cheat Speed Game)
+-- ADVANCED VELOCITY BYPASS LOOP (Bebas Bug Blank Screen & Safe Reset State)
 -- -----------------------------------------------------------------------------
 inputSpeed.FocusLost:Connect(function()
 	local numericValue = tonumber(inputSpeed.Text)
@@ -381,36 +386,49 @@ end)
 
 toggleSpeedBtn.Activated:Connect(function()
 	speedSettings.Enabled = not speedSettings.Enabled
+	
+	local numericValue = tonumber(inputSpeed.Text)
+	if numericValue then speedSettings.Multiplier = numericValue end
+
 	if speedSettings.Enabled then
 		toggleSpeedBtn.Text = "SPEED: ON"
-		toggleSpeedBtn.BackgroundColor3 = Color3.fromRGB(20, 40, 20)
+		toggleSpeedBtn.BackgroundColor3 = Color3.fromRGB(20, 60, 20)
 		toggleSpeedBtn.TextColor3 = Color3.fromRGB(100, 255, 100)
-		toggleStroke.Color = Color3.fromRGB(70, 255, 70)
-		
-		local numericValue = tonumber(inputSpeed.Text)
-		if numericValue then speedSettings.Multiplier = numericValue end
 	else
 		toggleSpeedBtn.Text = "SPEED: OFF"
-		toggleSpeedBtn.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
+		toggleSpeedBtn.BackgroundColor3 = Color3.fromRGB(60, 20, 20)
 		toggleSpeedBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
-		toggleStroke.Color = Color3.fromRGB(255, 70, 70)
-	end
-end)
-
--- Sistem Bypass Pergerakan Fisik Murni (Tembus Segala Jenis Anti-Cheat Properti WalkSpeed)
-RunService.Heartbeat:Connect(function()
-	if speedSettings.Enabled then
+		
+		-- STATE CLEANER: Kembalikan WalkSpeed internal game secara instan
 		pcall(function()
 			local char = localPlayer.Character
-			local hrp = char and char:FindFirstChild("HumanoidRootPart")
-			local hum = char and char:FindFirstChild("Humanoid")
-			
-			if hrp and hum and hum.MoveDirection.Magnitude > 0 then
-				-- Memajukan koordinat posisi RootPart secara konstan berdasarkan arah gerak analog/tombol HP Anda
-				hrp.CFrame = hrp.CFrame + (hum.MoveDirection * (speedSettings.Multiplier * 0.4))
+			if char and char:FindFirstChild("Humanoid") then
+				char.Humanoid.WalkSpeed = 16
 			end
 		end)
 	end
+end)
+
+-- Driver Penambahan Pergerakan Fisik Murni via Heartbeat
+RunService.Heartbeat:Connect(function()
+	pcall(function()
+		local char = localPlayer.Character
+		local hrp = char and char:FindFirstChild("HumanoidRootPart")
+		local hum = char and char:FindFirstChild("Humanoid")
+		
+		if hrp and hum then
+			if speedSettings.Enabled then
+				if hum.MoveDirection.Magnitude > 0 then
+					hrp.CFrame = hrp.CFrame + (hum.MoveDirection * (speedSettings.Multiplier * 0.4))
+				end
+			else
+				-- Memastikan speed boost dinonaktifkan sepenuhnya saat OFF
+				if hum.WalkSpeed ~= 16 then
+					hum.WalkSpeed = 16
+				end
+			end
+		end
+	end)
 end)
 
 Players.PlayerAdded:Connect(updatePlayerList)
