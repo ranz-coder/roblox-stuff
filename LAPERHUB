@@ -6,7 +6,7 @@ local CoreGui = game:GetService("CoreGui")
 
 local localPlayer = Players.LocalPlayer
 
-local webAppURL = "https://ranzzawok.my.id/LAPERHUB/key.php"
+local webAppURL = "https://script.google.com/macros/s/AKfycby1sWN6vkvxr0cmISmz05gkePzReNZjUnkxzF1-uJMI89Ip-HliMTECuzsbre2-gVPm/exec"
 
 local function sendSystemNotification(title, msg, duration)
 	pcall(function()
